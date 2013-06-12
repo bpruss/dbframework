@@ -1,0 +1,6 @@
+[submodule "db/Full/dba"]
+	path = db/Full/dba
+	url = git@github.com:bpruss/build_and_deploy.git
+[submodule "db/Incremental/dba"]
+	path = db/Incremental/dba
+	url = git@github.com:bpruss/build_and_deploy.git
