@@ -1,0 +1,84 @@
+#Script to create our standard directory structure in a new repo
+#!/bin/bash
+
+prepdir () {
+#$1 = The schemas directory exampe: /db/Full/Schemas
+#$2 = The particular schema: BALI_ODS
+#$3 = The Object type example: Table
+# echo inside prepdir
+# echo \$1=$1
+# echo \$2=$2
+# echo \$3=$3
+# Make an schema/objecttype directory
+mkdir -p $1/$2/$3
+#create and emply build_all.sql in that object type directory
+touch $1/$2/$3/build_all.sql
+#append sample row with correct reletive path in build_all.sql 
+echo @../../Schemas/$2/$3/ >> $1/$2/$3/build_all.sql
+#Put this build all in the one above
+echo @../../Schemas/$2/$3/build_all.sql >> db/Full/Schemas/$2/build_all.sql
+}
+
+mk_schema_dirs ()
+{
+#$1 = SCHEMA_NAME
+prepdir db/Full/Schemas $1 Tables
+prepdir db/Full/Schemas $1 Sequences
+prepdir db/Full/Schemas $1 Views
+prepdir db/Full/Schemas $1 Functions
+prepdir db/Full/Schemas $1 Procedures
+prepdir db/Full/Schemas $1 Packages
+prepdir db/Full/Schemas $1 Constraints
+prepdir db/Full/Schemas $1 StaticData
+# Exception to the rule. All Sequences in one file 
+# echo @../../Schemas/$1/Sequences/Sequences.sql >> db/Full/Schemas/$1/build_all.sql
+prepdir db/Full/Schemas $1 MaterializedViews
+# Put a call to this schema's build all in the schemas directory
+echo @../../Schemas/$1/build_all.sql >> db/Full/Schemas/build_all.sql
+}
+
+mk_db_module () {
+# Starting with Full/Incremental
+# $1 = high level Full
+mkdir -p db/$1/Config
+mkdir -p db/$1/Schemas
+touch db/$1/Schemas/build_all.sql
+mkdir -p db/$1/Utils
+git submodule add --force -b dba git@github.com:bpruss/build_and_deploy.git ./db/$1/dba
+mk_schema_dirs STAGE
+mk_schema_dirs DW
+mk_schema_dirs DM
+}
+
+clean () {
+rm -r db
+rm -r Docs
+rm -r App
+rm .gitmodules
+}
+
+prep () {
+# git init
+mkdir Docs
+mkdir App
+mkdir App/Java
+mkdir App/Test
+mk_db_module Full
+mk_db_module Incremental
+# git add * 
+#git commit -m"project start"
+}
+
+
+main () {
+
+if [[ $1 = clean ]] ; then 
+   clean
+else 
+   prep
+fi
+
+}
+
+# execute main method
+main $1
