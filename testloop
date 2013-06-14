@@ -1,0 +1,8 @@
+#!/bin/bash
+ObjectTypes="Tables Sequences Views Functions Procedures Packages Constraints StaticData"
+for OT in $ObjectTypes
+  do 
+     echo $OT
+  done
+  
+  
