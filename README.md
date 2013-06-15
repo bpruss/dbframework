@@ -15,15 +15,15 @@ Break into modules
 -  A module usually consists of one or more schemas but a utility module may consist of some objects that may be installed into one or more schemas. Examples of this are generic Process Logging components, Partition Management components ect. 
 - Master install script for each module
 - Each module needs the following components: 
-    a. Storage TABLESPACES and optionally one or more separate TEMP tablespace. 
-    b. Users/Schemas - Come in four classes, create templates for basic security for each.
-    c. Database Objects
+    1. Storage TABLESPACES and optionally one or more separate TEMP tablespace. 
+    2. Users/Schemas - Come in four classes, create templates for basic security for each.
+    3. Database Objects
        1) Object Owner 
        2) Data Access 
        3) View Accounts
        4) Batch User
-    d. Incorporate Stub schema's and objects for external dependencies.  
-    e. Linux Objects (Optional)
+    4. Incorporate Stub schema's and objects for external dependencies.  
+    5. Linux Objects (Optional)
 
 - Where possible do things once!  Recently learned term DRY = Don't Repeat Yourself!
    a. One set of process and error logging objects.
