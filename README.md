@@ -17,11 +17,11 @@ Break into modules
 - Each module needs the following components: 
     1. Storage TABLESPACES and optionally one or more separate TEMP tablespace. 
     2. Users/Schemas - Come in four classes, create templates for basic security for each.
-    3. Database Objects
        1. Object Owner 
        2. Data Access 
        3. View Accounts
        4. Batch User
+    3. Database Objects
     4. Incorporate Stub schema's and objects for external dependencies.  
     5. Linux Objects (Optional)
 
