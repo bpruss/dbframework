@@ -3,7 +3,7 @@ dbframework
 
 A framework for agile database builds -> Continuous Integration
 
-Bernie Pruss
+[Bernie Pruss](http://BerniePruss.com)
 
 
 Goal: For anyone (including the build server) to be able to check out and deploy a database project without need of specialized DBA skills. Just run a single install command with the correct credentials and target db name. 
