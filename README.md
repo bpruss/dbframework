@@ -18,16 +18,16 @@ Break into modules
     1. Storage TABLESPACES and optionally one or more separate TEMP tablespace. 
     2. Users/Schemas - Come in four classes, create templates for basic security for each.
     3. Database Objects
-       1) Object Owner 
-       2) Data Access 
-       3) View Accounts
-       4) Batch User
+       1. Object Owner 
+       2. Data Access 
+       3. View Accounts
+       4. Batch User
     4. Incorporate Stub schema's and objects for external dependencies.  
     5. Linux Objects (Optional)
 
 - Where possible do things once!  Recently learned term DRY = Don't Repeat Yourself!
-   a. One set of process and error logging objects.
-   b. A set of utility scripts issue all appropriate GRANTS based on a pattern and the data dictionary. 
-   c. A set of utility scripts issue all appropriate SYNONYMS based on a pattern and the data dictionary. 
-   d. A set of utility procedures to manage common maintenance tasks
-   e. A shell script or set of scripts to create and refresh the filesystem structure and build_all.sql scripts. 
+   1. One set of process and error logging objects.
+   2. A set of utility scripts issue all appropriate GRANTS based on a pattern and the data dictionary. 
+   3. A set of utility scripts issue all appropriate SYNONYMS based on a pattern and the data dictionary. 
+   4. A set of utility procedures to manage common maintenance tasks
+   5. A shell script or set of scripts to create and refresh the filesystem structure and build_all.sql scripts. 
