@@ -8,7 +8,7 @@ Bernie Pruss
 
 Goal: For anyone (including the build server) to be able to check out and deploy a database project without need of specialized DBA skills. Just run a single install command with the correct credentials and target db name. 
 
-Note: I have done this same approach with Microsoft SQL Server and as time permits I may port this implemenation to SQL Server but for now we are starting with Oracle. 
+Note: I have done this same approach with Microsoft SQL Server and as time permits I may port this implemenation to SQL Server but for now and this github project we are starting with Oracle. 
 
 Strategy: 
 Break into modules
