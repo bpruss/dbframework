@@ -1,6 +1,8 @@
 #Script to create our standard directory structure in a new repo
 #!/bin/bash
 
+# source ./db.cfg
+
 prepdir () {
 #$1 = The schemas directory exampe: /db/Full/Schemas
 #$2 = The particular schema: BALI_ODS
@@ -16,32 +18,33 @@ touch $1/$2/$3/build_all.sql
 #append sample row with correct reletive path in build_all.sql 
 echo @../../Schemas/$2/$3/ >> $1/$2/$3/build_all.sql
 #Put this build all in the one above
-echo @../../Schemas/$2/$3/build_all.sql >> db/Full/Schemas/$2/build_all.sql
+echo @../../Schemas/$2/$3/build_all.sql >> $1/$2/build_all.sql
 }
 
 mk_schema_dirs ()
 {
-#$1 = SCHEMA_NAME
+#$1 = build_name i.e. Full, Incremental, v1.0 etc
+#$2 = SCHEMA_NAME
 # preparation to put ObjectTypes in .cfg file 
 ObjectTypes="Tables Sequences Views MaterializedViews Functions Procedures Packages Constraints StaticData"
-for OT in $ObjectTypes
+for ObjTyp in $ObjectTypes
    do 
-   prepdir db/Full/Schemas $1 $OT
+      prepdir db/$1/Schemas $2 $ObjTyp
    done 
-echo @../../Schemas/$1/build_all.sql >> db/Full/Schemas/build_all.sql
+echo @../../Schemas/$1/build_all.sql >> db/$1/Schemas/build_all.sql
 }
 
 mk_db_module () {
 # Starting with Full/Incremental
-# $1 = high level Full
+# $1 = high level Full, Incremental, V1.0 etc.
 mkdir -p db/$1/Config
 mkdir -p db/$1/Schemas
 touch db/$1/Schemas/build_all.sql
 mkdir -p db/$1/Utils
 git submodule add --force -b dba git@github.com:bpruss/build_and_deploy.git ./db/$1/dba
-SchemaList="ARCH STAGE DW DM REF" 
+SchemaList="ARCH STAGE DW DM REF"
 for Schema in $SchemaList
-   do mk_schema_dirs $Schema
+   do mk_schema_dirs $1 $Schema
 done 
 }
 
@@ -58,8 +61,12 @@ mkdir Docs
 mkdir App
 mkdir App/Java
 mkdir App/Test
-mk_db_module Full
-mk_db_module Incremental
+dbModules="Full Incremental" 
+for Module in $dbModules
+   do 
+     mk_db_module $Module
+   done
+
 # git add * 
 #git commit -m"project start"
 }
