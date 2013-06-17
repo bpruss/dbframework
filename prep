@@ -1,11 +1,15 @@
 #Script to create our standard directory structure in a new repo
 #!/bin/bash
 
+# To do: 
+# 1. header for schema level build_all.sql 
+# 2. util to poplulate or repopulate object level build.sql with *.sql
+
 source ./db.cfg
 
 prepdir () {
 #$1 = The schemas directory exampe: /db/Full/Schemas
-#$2 = The particular schema: BALI_ODS
+#$2 = The particular schema, exampe: Stage
 #$3 = The Object type example: Table
 # echo inside prepdir
 # echo \$1=$1
@@ -13,12 +17,12 @@ prepdir () {
 # echo \$3=$3
 # Make an schema/objecttype directory
 mkdir -p $1/$2/$3
-#create and emply build_all.sql in that object type directory
+#create an emply build_all.sql in that object type directory
 touch $1/$2/$3/build_all.sql
 #append sample row with correct reletive path in build_all.sql 
 echo @../../Schemas/$2/$3/ >> $1/$2/$3/build_all.sql
-#Put this build all in the one above
-echo @../../Schemas/$2/$3/build_all.sql >> $1/$2/build_all.sql
+#Call this build all in from the one above
+echo @../../Schemas/$2/$3/build_all.sql\; --prepdir >> $1/$2/build_all.sql
 }
 
 mk_schema_dirs ()
@@ -27,11 +31,23 @@ mk_schema_dirs ()
 #$2 = SCHEMA_NAME
 # preparation to put ObjectTypes in .cfg file 
 # ObjectTypes="Tables Sequences Views MaterializedViews Functions Procedures Packages Constraints StaticData"
+
+mkdir -p db/"$1"/Schemas/"$2" 
+
+echo -- >> db/$1/Schemas/$2/build_all.sql
+echo " " >> db/$1/Schemas/$2/build_all.sql
+
+echo set sqlprompt \"_USER:\&v_"$2"_user\.\> \" >> db/$1/Schemas/$2/build_all.sql
+echo alter session set current_schema=\&v_"$2"_user\.\; >> db/$1/Schemas/$2/build_all.sql
+echo -- >> db/$1/Schemas/$2/build_all.sql
+echo " " >> db/$1/Schemas/$2/build_all.sql
+
 for ObjTyp in $ObjectTypes
    do 
       prepdir db/$1/Schemas $2 $ObjTyp
    done 
-echo @../../Schemas/$1/build_all.sql >> db/$1/Schemas/build_all.sql
+
+echo @../../Schemas/$1/$2/build_all.sql >> db/$1/Schemas/build_all.sql
 }
 
 populate_user_scripts ()
@@ -118,6 +134,9 @@ touch db/$1/Config/env.sql
 # touch db/$1/Config/schema_objects_master.sql
 echo @../../Schemas/build_all.sql >> db/$1/Config/schema_objects_master.sql
 
+populate_env_script $1
+populate_tablespace_scripts $1
+
 }
 
 
@@ -132,7 +151,7 @@ touch db/$1/Schemas/build_all.sql
 
 mkdir -p db/$1/Utils
 git submodule add --force -b dba git@github.com:bpruss/build_and_deploy.git ./db/$1/dba
-SchemaList="ARCH STAGE DW DM REF"
+# SchemaList="ARCH STAGE DW DM REF"
 
 for Schema in $SchemaList
    do mk_schema_dirs $1 $Schema
@@ -157,8 +176,6 @@ mkdir App/Test
 for Module in $dbModules
    do 
      mk_db_module $Module
-     populate_env_script $Module
-     populate_tablespace_scripts $Module
    done
 
 # git add * 
