@@ -1,7 +1,7 @@
 #Script to create our standard directory structure in a new repo
 #!/bin/bash
 
-# source ./db.cfg
+source ./db.cfg
 
 prepdir () {
 #$1 = The schemas directory exampe: /db/Full/Schemas
@@ -26,7 +26,7 @@ mk_schema_dirs ()
 #$1 = build_name i.e. Full, Incremental, v1.0 etc
 #$2 = SCHEMA_NAME
 # preparation to put ObjectTypes in .cfg file 
-ObjectTypes="Tables Sequences Views MaterializedViews Functions Procedures Packages Constraints StaticData"
+# ObjectTypes="Tables Sequences Views MaterializedViews Functions Procedures Packages Constraints StaticData"
 for ObjTyp in $ObjectTypes
    do 
       prepdir db/$1/Schemas $2 $ObjTyp
@@ -34,15 +34,106 @@ for ObjTyp in $ObjectTypes
 echo @../../Schemas/$1/build_all.sql >> db/$1/Schemas/build_all.sql
 }
 
+populate_user_scripts ()
+{
+# $1 Full/Incremental etc
+# Each schema needs a user entry, a drop user entry and a default tablespace entry
+# First User info
+
+for Schema in $SchemaList
+   do {
+        echo drop user $2 cascade\; >>db/$1/Config/users_drop.sql
+        echo @../../dba/users/user_template_owner.sql "$2" "$2"123 "$2"_DATA \&V_TEMP_TS. >>db/$1/Config/users.sql
+      }
+done 
+
+}
+
+populate_tablespace_scripts () 
+{
+# $1 Full/Incremental etc
+# 
+echo -- First take tablespaces offline >>db/$1/Config/tablespaces_drop.sql
+
+for Schema in $SchemaList
+  do {
+     echo @../../dba/tablespaces/ts_template.sql "$Schema"_DATA  1M 10M LOGGING \&v_db_block_size OFF >>db/$1/Config/tablespaces.sql
+     echo alter tablespace  "$Schema"_DATA offline\;  >>db/$1/Config/tablespaces_drop.sql
+     }
+done   
+
+echo -- Now the drops >>db/$1/Config/tablespaces_drop.sql
+for Schema in $SchemaList
+  do echo drop tablespace "$Schema"_DATA including contents and datafiles cascade constraints\;  >>db/$1/Config/tablespaces_drop.sql
+done 
+}
+
+populate_env_script ()
+{
+# $1 Full/Incremental
+# Uses SchamList variable from sourced config file
+
+echo set echo off       >>db/$1/Config/env.sql
+echo -- Config section: >>db/$1/Config/env.sql
+echo define v_log_root_dir=../../logs >>db/$1/Config/env.sql
+echo -- >>db/$1/Config/env.sql
+echo define v_temp_ts=temp >>db/$1/Config/env.sql
+echo -- Now a variable each standard schema, lets us change them later >>db/$1/Config/env.sql
+
+for Schema in $SchemaList
+   do echo define v_"$Schema"_user=$Schema >>db/$1/Config/env.sql
+done 
+
+echo -- Now lets write them out for ease of debugging >>db/$1/Config/env.sql
+
+echo prompt v_log_root_dir=\$v_log_root_dir >>db/$1/Config/env.sql
+echo -- >>db/$1/Config/env.sql
+
+for Schema in $SchemaList
+   do echo prompt v_"$Schema"_user=\$v_"$Schema"_user >>db/$1/Config/env.sql
+done 
+
+
+}
+
+
+prep_config_dir () 
+{
+# $1 Full/Incremental etc. 
+mkdir -p db/$1/Config
+touch db/$1/Config/tablespaces.sql
+touch db/$1/Config/tablespaces_drop.sql
+touch db/$1/Config/users.sql
+touch db/$1/Config/users_drop.sql
+touch db/$1/Config/roles.sql
+touch db/$1/Config/roles_drop.sql
+touch db/$1/Config/directories.sql
+touch db/$1/Config/directories_drop.sql
+touch db/$1/Config/misc_drop.sql
+touch db/$1/Config/smoke_test.sql
+touch db/$1/Config/incoming_grants.sql
+touch db/$1/Config/incoming_synonyms.sql
+touch db/$1/Config/env.sql
+
+# touch db/$1/Config/schema_objects_master.sql
+echo @../../Schemas/build_all.sql >> db/$1/Config/schema_objects_master.sql
+
+}
+
+
 mk_db_module () {
 # Starting with Full/Incremental
 # $1 = high level Full, Incremental, V1.0 etc.
-mkdir -p db/$1/Config
+
+prep_config_dir $1
+
 mkdir -p db/$1/Schemas
 touch db/$1/Schemas/build_all.sql
+
 mkdir -p db/$1/Utils
 git submodule add --force -b dba git@github.com:bpruss/build_and_deploy.git ./db/$1/dba
 SchemaList="ARCH STAGE DW DM REF"
+
 for Schema in $SchemaList
    do mk_schema_dirs $1 $Schema
 done 
@@ -61,10 +152,13 @@ mkdir Docs
 mkdir App
 mkdir App/Java
 mkdir App/Test
-dbModules="Full Incremental" 
+# dbModules="Full Incremental" 
+
 for Module in $dbModules
    do 
      mk_db_module $Module
+     populate_env_script $Module
+     populate_tablespace_scripts $Module
    done
 
 # git add * 
